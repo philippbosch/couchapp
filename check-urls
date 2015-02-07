@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use LWP::Simple qw(head);
+local $/; # slurp whole files
+local $\ = "\n"; # auto-terminate lines
+
+=head1 NAME
+
+check-urls
+
+=head1 SYNOPSYS
+
+To check all the markdown files in the current directory for broken
+links, and assuming that local links are found relative to the current
+directory:
+
+    check-urls *.md
+
+This will print out a list of URLs extracted from all the .md files
+which cannot be resolved using a head request.  The file(s) the link
+was found in are listed after a colon.
+
+=head1 REQUIREMENTS
+
+Needs Perl 5, LWP::Simple.
+
+=head1 AUTHOR
+
+Nick Stokoe <github.wu-lee.remove-this-part@noodlefactory.co.uk>
+
+=cut
+
+
+my %links;
+while(<>) {
+    $links{$_}{$ARGV}++
+	for / \[ .*? \] \( (.*?) \) /gx;
+}
+
+for my $link (sort keys %links) {
+    -e $link 
+    or head $link
+    or print "$link: ", join "/", keys %{$links{$link}}
+}
+
